@@ -28,7 +28,7 @@ App::build(array('Lib' => App::path('Lib', 'Migrations')), App::APPEND);
  * @package       migrations
  * @subpackage    migrations.vendors.shells
  */
-class MigrationShell extends Shell {
+class MigrationShell extends AppShell {
 
 /**
  * Connection used
@@ -81,7 +81,7 @@ class MigrationShell extends Shell {
 			$this->type = $this->params['plugin'];
 		}
 		$this->path = $this->_getPath() . 'Config' . DS . 'Migration' . DS;
-		$this->Version =& new MigrationVersion(array(
+		$this->Version = new MigrationVersion(array(
 			'connection' => $this->connection,
 			'autoinit' => !$this->params['no-auto-init']
 		));
@@ -127,13 +127,9 @@ class MigrationShell extends Shell {
 					'help' => __('Disables automatic creation of migrations table and running any internal plugin migrations')))
 			->addSubcommand('status', array(
 				'help' => __('Displays a status of all plugin and app migrations.')))
-			->addSubcommand('all', array(
-				'help' => __('Bake a complete MVC. optional <name> of a Model')))
 			->addSubcommand('run', array(
 				'help' => __('Run a migration to given direction or version.')))
 			->addSubcommand('generate', array(
-				'help' => __('Generates a migration file.')))
-			->addSubcommand('add', array(
 				'help' => __('Generates a migration file.')));
 	}
 
@@ -175,6 +171,7 @@ class MigrationShell extends Shell {
 			$options['direction'] = 'up';
 		} else if (isset($this->args[0]) && $this->args[0] == 'reset') {
 			$options['version'] = 0;
+			$options['reset'] = true;
 			$options['direction'] = 'down';
 		} else {
 			$options = $this->_promptVersionOptions($mapping, $latestVersion);
@@ -188,7 +185,10 @@ class MigrationShell extends Shell {
 			'type' => $this->type,
 			'callback' => &$this
 		);
-		$this->_execute($options, $once);
+		$result = $this->_execute($options, $once);
+		if($result !== true){
+			$this->out(__d('migrations', $result));
+		} 
 
 		$this->out(__d('migrations', 'All migrations have completed.'));
 		$this->out('');
@@ -196,8 +196,10 @@ class MigrationShell extends Shell {
 	}
 
 	protected function _execute($options, $once) {
+		$result = true;
 		try {
-			$this->Version->run($options);
+			$result = $this->Version->run($options);
+			
 		} catch (MigrationException $e) {
 			$this->out(__d('migrations', 'An error occurred when processing the migration:'));
 			$this->out('  ' . sprintf(__d('migrations', 'Migration: %s'), $e->Migration->info['name']));
@@ -217,6 +219,7 @@ class MigrationShell extends Shell {
 			}
 			$this->hr();
 		}
+		return $result;
 	}
 
 	protected function _singleStepOptions($mapping, $latestVersion) {
@@ -357,15 +360,6 @@ class MigrationShell extends Shell {
 				$this->_updateSchema();
 			}
 		}
-	}
-
-/**
- * Generate a new migration file
- *
- * @see generate
- */
-	public function add() {
-		return $this->generate();
 	}
 
 /**

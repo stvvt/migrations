@@ -61,7 +61,7 @@ class MigrationsPanel extends DebugPanel {
  *
  * @return void
  */
-	function startup(&$controller) {
+	function startup(Controller $controller) {
 		return parent::startup($controller);
 	}
 
@@ -70,10 +70,12 @@ class MigrationsPanel extends DebugPanel {
  *
  * @return array
  */
-	function beforeRender(&$controller) {
+	function beforeRender(Controller $controller) {
 		$v = new MigrationVersion();
-		$map = array();
-		foreach (App::objects('plugin') as $plugin) {
+		$map = $migrations = array();
+
+		$migrations = Hash::merge(array('app'), App::objects('plugin'));
+		foreach ($migrations as $plugin) {
 			try {
 				$map[$plugin] = array(
 					'map' => $v->getMapping($plugin),
