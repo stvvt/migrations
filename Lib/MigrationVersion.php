@@ -346,6 +346,8 @@ class MigrationVersion {
 				try {
 					$result = $migration->run($direction, $options);
 					$this->log[$info['name']] = $migration->getQueryLog();
+				} catch (MigrationException $exception){
+				    throw $exception;
 				} catch (Exception $exception){
 					$mapping = $this->getMapping($options['type']);
 					$latestVersionName = '#' . number_format($mapping[$latestVersion]['version'] / 100, 2, '', '') . ' ' . $mapping[$latestVersion]['name'];
