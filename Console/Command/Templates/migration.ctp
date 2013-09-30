@@ -44,7 +44,7 @@ class <?php echo $class; ?> extends AppMigration {
  * @access public
  */
 	public function before($direction) {
-		return true;
+		return parent::before($direction);
 	}
 
 /**
@@ -55,6 +55,6 @@ class <?php echo $class; ?> extends AppMigration {
  * @access public
  */
 	public function after($direction) {
-		return true;
+		return parent::after($direction);
 	}
 }
