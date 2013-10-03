@@ -460,7 +460,7 @@ class CakeMigration extends Object {
 							));
 							break;
 						case 'change':
-							if (!isset($col['type']) || $col['type'] == $tableFields[$field]['type']) {
+							if (isset($tableFields[$field]) && (!isset($col['type']) || $col['type'] == $tableFields[$field]['type'])) {
 								$def = array_merge($tableFields[$field], $col);
 							} else {
 								$def = $col;
